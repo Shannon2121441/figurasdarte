@@ -1,10 +1,6 @@
 <?php
-require_once 'components/connect.php';
 
 class Product {
-    private $conn;
-    private $table = 'product';
-
     public $id;
     public $user_id;
     public $name;
@@ -16,41 +12,91 @@ class Product {
     public $status;
     public $image;
 
-    public function __construct($db) {
-        $this->conn = $db;
+    private $connDb;
+    private $table = 'product';
+
+    public function __construct($connDb) {
+        $this->connDb = $connDb;
     }
 
     // Create a new product
     public function create() {
-        $query = "INSERT INTO $this->table (user_id, name, category_id, product_detail, date_posted, price, stock_qty, status, image) 
-                  VALUES (:user_id, :name, :category_id, :product_detail, :date_posted, :price, :stock_qty, :status, :image)";
+        try {
+            $this->date_posted = date('Y-m-d H:i:s'); // Automatically set current date and time
+            $sql = "INSERT INTO $this->table (user_id, name, category_id, product_detail, date_posted, price, stock_qty, status, image) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $this->connDb->prepare($sql);
 
-        $stmt = $this->conn->prepare($query);
+            $stmt->bind_param(
+                'isissdiss',
+                $this->user_id,
+                $this->name,
+                $this->category_id,
+                $this->product_detail,
+                $this->date_posted,
+                $this->price,
+                $this->stock_qty,
+                $this->status,
+                $this->image
+            );
 
-        $stmt->bindParam(':user_id', $this->user_id);
-        $stmt->bindParam(':name', $this->name);
-        $stmt->bindParam(':category_id', $this->category_id);
-        $stmt->bindParam(':product_detail', $this->product_detail);
-        $stmt->bindParam(':date_posted', $this->date_posted);
-        $stmt->bindParam(':price', $this->price);
-        $stmt->bindParam(':stock_qty', $this->stock_qty);
-        $stmt->bindParam(':status', $this->status);
-        $stmt->bindParam(':image', $this->image);
-
-        if ($stmt->execute()) {
-            return true;
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                throw new Exception("Failed to create product: " . $stmt->error);
+            }
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+            return false;
         }
-        return false;
     }
 
     // Retrieve all products
     public function getAll() {
-        $query = "SELECT * FROM $this->table";
+        try {
+            $sql = "SELECT * FROM $this->table";
+            $result = $this->connDb->query($sql);
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
+            $products = [];
+            while ($row = $result->fetch_object()) {
+                $products[] = $row;
+            }
+            return $products;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+            return [];
+        }
+    }
 
-        return $stmt;
+    // Retrieve product by ID
+    public function getById($id) {
+        try {
+            $sql = "SELECT * FROM $this->table WHERE id = ?";
+            $stmt = $this->connDb->prepare($sql);
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            return $stmt->get_result()->fetch_object();
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+            return null;
+        }
+    }
+
+    // Delete a product by ID
+    public function delete($id) {
+        try {
+            $sql = "DELETE FROM $this->table WHERE id = ?";
+            $stmt = $this->connDb->prepare($sql);
+            $stmt->bind_param('i', $id);
+            if ($stmt->execute()) {
+                return true;
+            } else {
+                throw new Exception("Failed to delete product: " . $stmt->error);
+            }
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+            return false;
+        }
     }
 }
 ?>

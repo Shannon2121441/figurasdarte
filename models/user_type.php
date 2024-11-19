@@ -1,27 +1,64 @@
 <?php
-// models/UserType.php
-
-require_once 'components/connect.php';
-
 class UserType {
-    private $conn;
-    private $table = 'user_type';
-
     public $id;
     public $type_name;
 
-    public function __construct($db) {
-        $this->conn = $db;
+    private $connDb;
+
+    public function __construct($connDb) {
+        $this->connDb = $connDb;
     }
 
-    // Get all user types
-    public function getAll() {
-        $query = "SELECT * FROM $this->table";
+    function save() {
+        try {
+            $sql = "";
+            if (empty($this->id)) {
+                $sql = "INSERT INTO user_type (type_name)
+                        VALUES ('" . $this->type_name . "')";
+            } else {
+                $sql = "UPDATE user_type SET
+                        type_name = '" . $this->type_name . "'
+                        WHERE id = '" . $this->id . "'";
+            }
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
+    function getAll() {
+        try {
+            $sql = "SELECT * FROM user_type";
+            $result = mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+            $rows = [];
+            while ($row = mysqli_fetch_object($result)) {
+                $rows[] = $row;
+            }
+            return $rows;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
 
-        return $stmt;
+    function getSingle($id) {
+        try {
+            $sql = "SELECT * FROM user_type WHERE id = '" . $id . "'";
+            $result = mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+            $row = mysqli_fetch_object($result);
+
+            return $row;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
+
+    function delete($id) {
+        try {
+            $sql = "DELETE FROM user_type WHERE id = '" . $id . "'";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
     }
 }
 ?>

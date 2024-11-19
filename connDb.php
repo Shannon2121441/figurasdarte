@@ -1,8 +1,5 @@
 <?php
-define('DB_SERVER', 's2121441.heliohost.st');
-define('DB_USERNAME', 's2121441_shannon');
-define('DB_PASSWORD', 'Sjzw43~64');
-define('DB_DATABASE', 's2121441_arte_db');
+require_once 'config.php';
 
 function getDbConnection(): PDO {
     static $conn = null;

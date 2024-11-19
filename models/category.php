@@ -1,27 +1,45 @@
 <?php
-// models/Category.php
 
-require_once 'components/connect.php';
-
-class Category {
+class Category
+{
     private $conn;
     private $table = 'category';
 
     public $id;
     public $name;
 
-    public function __construct($db) {
-        $this->conn = $db;
+    private $connDb;
+
+    #
+    public function __construct($connDb)
+    {
+        $this->connDb = $connDb;
     }
 
-    // Get all categories
-    public function getAll() {
-        $query = "SELECT * FROM $this->table";
+    #
+    public function getAll()
+    {
+        try {
+            $query = "SELECT * FROM $this->table";
+            $stmt = $this->connDb->prepare($query);
+            $stmt->execute();
+            return $stmt;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-
-        return $stmt;
+    #
+    public function getById($id)
+    {
+        try {
+            $query = "SELECT * FROM $this->table WHERE id = ?";
+            $stmt = $this->connDb->prepare($query);
+            $stmt->execute([$id]);
+            return $stmt->fetch();
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
     }
 }
 ?>

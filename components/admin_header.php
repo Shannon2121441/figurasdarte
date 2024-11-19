@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Include the config file for the database connection
+include '../config.php';  
+
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+} else {
+    $user_id = '';  // Not logged in
+}
+?>
 <header>
     <div class="logo">
         <img src="../image/logo.png" alt="Logo" width="60">

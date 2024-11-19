@@ -1,16 +1,15 @@
 <?php
-    include 'components/connect.php';
 
     if (isset($_COOKIE['user_id'])) {
         $user_id = $_COOKIE['user_id'];
-    }else{
+    } else {
         $user_id = '';
     }
 
-    include 'components/add_wishlist.php';
-    include 'components/add_cart.php';
-
+    include 'actions/add_favorite.php';
+    include 'actions/add_cart.php';
 ?>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -31,20 +30,20 @@
             <div class="box-container">
                 <?php
                     $select_products = $conn->prepare("SELECT * FROM `products` WHERE status = ?");
-                    $select_products->execute(['active']);
+                    $select_products->execute(['published']); // Querying products with published status
 
                     if ($select_products->rowCount() > 0) {
-                        while($fetch_products = $select_products->fetch(PDO::FETCH_ASSOC)){
+                        while($fetch_products = $select_products->fetch(PDO::FETCH_ASSOC)) {
                 ?>
-                <form action="" method="post" class="box <?php if($fetch_products['stock'] == 0){echo "disabled";} ?>">
+                <form action="" method="post" class="box <?php if($fetch_products['stock_qty'] == 0){echo "disabled";} ?>">
                     <img src="uploaded_files/<?= $fetch_products['image']; ?>" class="image">
                     
-                    <?php if($fetch_products['stock'] > 9){ ?>
+                    <?php if($fetch_products['stock_qty'] > 9) { ?>
                         <span class="stock" style="color: green;">In Stock</span>
-                    <?php }elseif($fetch_products['stock'] == 0){ ?>
+                    <?php } elseif($fetch_products['stock_qty'] == 0) { ?>
                         <span class="stock" style="color: red;">Out of Stock</span>
-                    <?php }else{ ?>
-                        <span class="stock" style="color: red;">Hurry, only <?= $fetch_products['stock']; ?></span>
+                    <?php } else { ?>
+                        <span class="stock" style="color: red;">Hurry, only <?= $fetch_products['stock_qty']; ?></span>
                     <?php } ?>
                     <div class="content">
                         <img src="image/shape-19.png" alt="shape" class="shap">
@@ -60,13 +59,13 @@
                         <input type="hidden" name="product_id" value="<?= $fetch_products['id'] ?>">
                         <div class="flex-btn">
                             <a href="checkout.php?get_id=<?= $fetch_products['id'] ?>" class="btn">Buy Now</a>
-                            <input type="number" name="qty" required min="1" value="1" max="<?= $fetch_products['stock']; ?>" maxlength="2" class="qty box">
+                            <input type="number" name="qty" required min="1" value="1" max="<?= $fetch_products['stock_qty']; ?>" maxlength="2" class="qty box">
                         </div>
                     </div>
                 </form>
                 <?php
                         }
-                    }else{
+                    } else {
                         echo '
                             <div class="empty">
                                 <p>No Products Added Yet!</p>
@@ -76,8 +75,6 @@
                 ?> 
             </div>
         </div>
-        
-
 
         <?php include 'components/footer.php'; ?>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>

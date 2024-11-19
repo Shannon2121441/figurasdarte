@@ -1,10 +1,5 @@
 <?php
-require_once 'components/connect.php';
-
 class Review {
-    private $conn;
-    private $table = 'review';
-
     public $id;
     public $product_id;
     public $rating;
@@ -12,39 +7,75 @@ class Review {
     public $posted_by_id;
     public $date_posted;
 
-    public function __construct($db) {
-        $this->conn = $db;
+    private $connDb;
+
+    #
+    public function __construct($connDb) {
+        $this->connDb = $connDb;
     }
 
-    // Create a new review
-    public function create() {
-        $query = "INSERT INTO $this->table (product_id, rating, comment, posted_by_id, date_posted) 
-                  VALUES (:product_id, :rating, :comment, :posted_by_id, :date_posted)";
-
-        $stmt = $this->conn->prepare($query);
-
-        $stmt->bindParam(':product_id', $this->product_id);
-        $stmt->bindParam(':rating', $this->rating);
-        $stmt->bindParam(':comment', $this->comment);
-        $stmt->bindParam(':posted_by_id', $this->posted_by_id);
-        $stmt->bindParam(':date_posted', $this->date_posted);
-
-        if ($stmt->execute()) {
-            return true;
+    #
+    function create() {
+        try {
+            $sql = "INSERT INTO review (product_id, rating, comment, posted_by_id, date_posted) 
+                    VALUES ('" . $this->product_id . "', '" . $this->rating . "', '" . $this->comment . "', '" . $this->posted_by_id . "', '" . $this->date_posted . "')";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
         }
-        return false;
     }
 
-    // Get all reviews for a product
-    public function getByProduct() {
-        $query = "SELECT * FROM $this->table WHERE product_id = :product_id";
+    #
+    function update() {
+        try {
+            $sql = "UPDATE review 
+                    SET rating = '" . $this->rating . "', 
+                        comment = '" . $this->comment . "' 
+                    WHERE id = '" . $this->id . "'";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':product_id', $this->product_id);
+    #
+    function getByProduct($productId) {
+        try {
+            $sql = "SELECT * FROM review WHERE product_id = '" . $productId . "'";
+            $result = mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+            $rows = [];
+            while ($row = mysqli_fetch_object($result)) {
+                $rows[] = $row;
+            }
+            return $rows;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
 
-        $stmt->execute();
+    #
+    function getAll() {
+        try {
+            $sql = "SELECT * FROM review";
+            $result = mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+            $rows = [];
+            while ($row = mysqli_fetch_object($result)) {
+                $rows[] = $row;
+            }
+            return $rows;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
 
-        return $stmt;
+    #
+    function delete($id) {
+        try {
+            $sql = "DELETE FROM review WHERE id = '" . $id . "'";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
     }
 }
 ?>

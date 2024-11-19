@@ -1,26 +1,69 @@
 <?php
-
 class Tag {
-    private $id;
-    private $name;
+    public $id;
+    public $name;
 
-    public function __construct($name) {
-        $this->name = $name;
+    private $connDb;
+
+    #
+    public function __construct($connDb) {
+        $this->connDb = $connDb;
     }
 
-    public function save() {
-        global $conn;
-        $sql = "INSERT INTO tag (name) VALUES (?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$this->name]);
+    #
+    function save() {
+        try {
+            $sql = "INSERT INTO tag (name) VALUES ('" . $this->name . "')";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
     }
 
-    public static function getById($id) {
-        global $conn;
-        $sql = "SELECT * FROM tag WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch();
+    #
+    function update() {
+        try {
+            $sql = "UPDATE tag SET name = '" . $this->name . "' WHERE id = '" . $this->id . "'";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
+
+    #
+    function getAll() {
+        try {
+            $sql = "SELECT * FROM tag";
+            $result = mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+            $rows = [];
+            while ($row = mysqli_fetch_object($result)) {
+                $rows[] = $row;
+            }
+            return $rows;
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
+
+    #
+    function getById($id) {
+        try {
+            $sql = "SELECT * FROM tag WHERE id = '" . $id . "'";
+            $result = mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+            return mysqli_fetch_object($result);
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
+    }
+
+    #
+    function delete($id) {
+        try {
+            $sql = "DELETE FROM tag WHERE id = '" . $id . "'";
+            mysqli_query($this->connDb, $sql) or die(mysqli_error($this->connDb));
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
+        }
     }
 }
 ?>
